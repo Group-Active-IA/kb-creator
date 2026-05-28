@@ -13,6 +13,40 @@ Cuando entrás en Mode B, tu trabajo NO es generar archivos automáticamente sin
 
 ---
 
+## Preguntas de discovery (obligatorias para orquestación)
+
+Estas dos preguntas se hacen **antes** de la primera ronda cuando el run es orquestado (`.jr-orchestrator-state.json` presente). En modo standalone son opcionales pero recomendadas para mejorar la calidad del KB.
+
+### P0-sys — Tipo de sistema
+
+> ¿Qué tipo de sistema estamos documentando?
+
+**Opciones**:
+- (a) Aplicación web (frontend + backend, interfaz de usuario principal)
+- (b) API / backend puro (sin frontend propio)
+- (c) CLI / herramienta de línea de comandos
+- (d) Aplicación móvil
+- (e) SaaS multi-tenant (múltiples organizaciones aisladas)
+- (f) Otro (describí)
+
+**Por qué importa**: el `system_type` condiciona patrones de arquitectura, estructura de autenticación y tipo de documentación que tiene más valor. Mapea a `state.kb.discovery.system_type`.
+
+---
+
+### P0-scale — Escala de operación
+
+> ¿A qué escala opera (o se espera que opere) este sistema?
+
+**Opciones**:
+- (a) Usuario único o equipo pequeño (< 50 personas)
+- (b) Organización mediana (100-10k usuarios)
+- (c) Público multi-usuario (> 10k usuarios, un solo tenant)
+- (d) Multi-tenant (múltiples organizaciones, cada una con sus propios usuarios)
+
+**Por qué importa**: la escala determina decisiones de DB, caché, queue, y si el sistema necesita separación de datos por tenant. Mapea a `state.kb.discovery.scale`.
+
+---
+
 ## Preguntas de primera ronda (las 5 fundamentales)
 
 ### P1 — Visión y problema raíz
@@ -56,7 +90,7 @@ Cuando entrás en Mode B, tu trabajo NO es generar archivos automáticamente sin
 - ¿Compatibilidad con sistemas legacy?
 - ¿Compliance (GDPR, HIPAA, PCI-DSS)?
 
-**Por qué importa**: si la restricción es real, condiciona toda la arquitectura. Si no es real (es preferencia disfrazada de restricción), evita encerrarte.
+**Por qué importa**: si la restricción es real, condiciona toda la arquitectura. Si no es real (es preferencia disfrazada de restricción), evita encerrarte. El stack obligatorio mapea a `state.kb.discovery.stack`; las sub-preguntas de infra (Cloud/on-prem/DB/queues) resuelven el booleano `state.kb.discovery.needs_infra`.
 
 ---
 

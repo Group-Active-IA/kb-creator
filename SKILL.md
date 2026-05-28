@@ -77,29 +77,54 @@ Los extras **nunca reemplazan** los 10 canónicos — los complementan.
 
 ### Mode A workflow (silent)
 
+**Mode A → `source: "ingest"`** (see State integration below)
+
 1. `glob docs/*.{txt,docx,pdf,md}` — enumerá las fuentes (excluí README).
 2. Leé todas las fuentes.
 3. Para cada archivo canónico, extraé contenido relevante de las fuentes y estructuralo siguiendo `assets/canonical-templates.md`.
 4. Si una fuente cubre dominios extra (ej. pagos con un PSP específico), creá un archivo extra `1X_*.md`.
 5. Escribí los 10 canónicos + extras + `README.md`.
 6. Cerrá con una tabla resumen: `archivo → líneas → temas cubiertos`.
+7. **Si orquestado**: inferí los 6 campos `discovery` de los docs generados y ejecutá el hook de estado (ver `assets/state-contract.md` §4). Fuente: `"ingest"`.
 
-**No hagas preguntas en este modo.** Si una fuente es ambigua, registrá la duda en `10_preguntas_abiertas.md` y seguí.
+**No hagas preguntas en este modo.** Si una fuente es ambigua, registrá la duda en `10_preguntas_abiertas.md` y seguí. Si un campo `discovery` no puede inferirse con confianza, registrá la incertidumbre en `10_preguntas_abiertas.md` — nunca inventes un valor.
 
 ### Mode B workflow (interactive)
+
+**Mode B → `source: "interactive"`** (see State integration below)
 
 1. Analizá contexto disponible (nombre del repo, mensaje del usuario, archivos visibles).
 2. Resumí en un párrafo qué entendés del proyecto.
 3. Listá las **incertidumbres principales** (3-5).
 4. Proponé 2-3 enfoques iniciales con pros y contras.
-5. Hacé las **3-5 preguntas estratégicas** (ver `assets/strategic-questions.md`).
+5. Hacé las **3-5 preguntas estratégicas** (ver `assets/strategic-questions.md`), incluyendo las preguntas de discovery P0-sys y P0-scale que mapean a `system_type` y `scale`.
 6. Esperá respuesta del usuario antes de generar archivos.
 7. Después, proponé estructura inicial de la KB y validá.
 8. Iterá archivo por archivo, escribiendo + pidiendo feedback.
+9. **Si orquestado**: registrá los 6 campos `discovery` de las respuestas del usuario y ejecutá el hook de estado (ver `assets/state-contract.md` §4). Fuente: `"interactive"`.
 
 ### Tono según modo
 - **Mode A**: eficiente, factual, sin floreos.
 - **Mode B**: arquitecto senior + product manager. Cuestiona decisiones débiles. Marcá supuestos con `**Suposición:**`. Proponé alternativas. Detectá riesgos.
+
+---
+
+## State integration (orchestrated)
+
+Este hook es **condicional y standalone-safe**: se ejecuta solo si `.jr-orchestrator-state.json` ya existe en la raíz del proyecto (run orquestado por jr-orchestrator). Si el archivo no existe, el comportamiento es idéntico al de hoy — ningún archivo de estado es creado.
+
+**Cuándo corre**: inmediatamente después de escribir `knowledge-base/` (último paso del workflow, antes de retornar al usuario).
+
+**Qué escribe**: solo `state.kb` — nunca toca `step`, `owner`, `roadmap`, `skills`, ni `agents`.
+
+**Mode → source mapping**:
+| Modo | `state.kb.source` |
+|---|---|
+| Mode A (silent, desde `docs/`) | `"ingest"` |
+| Mode B (interactive, desde cero) | `"interactive"` |
+Mixed runs: si el run comenzó desde `docs/` (trigger Mode A), resuelve a `"ingest"` aunque se hayan completado huecos con preguntas. El origen dominante determina `source`.
+
+**Algoritmo completo, reglas de inferencia para Mode A y low-confidence rule**: ver [`assets/state-contract.md`](assets/state-contract.md).
 
 ---
 
@@ -150,4 +175,5 @@ npx skills add https://github.com/JuanCruzRobledo/kb-creator
 ## Resources
 
 - **Templates**: ver [assets/canonical-templates.md](assets/canonical-templates.md) — estructura interna esperada de los 10 archivos canónicos.
-- **Strategic questions**: ver [assets/strategic-questions.md](assets/strategic-questions.md) — banco de preguntas para Mode B.
+- **Strategic questions**: ver [assets/strategic-questions.md](assets/strategic-questions.md) — banco de preguntas para Mode B (incluye P0-sys y P0-scale para discovery orquestado).
+- **State contract**: ver [assets/state-contract.md](assets/state-contract.md) — schema slice `state.kb`, algoritmo de escritura condicional, reglas de inferencia Mode A, low-confidence rule.
