@@ -15,7 +15,7 @@ Cuando entrás en Mode B, tu trabajo NO es generar archivos automáticamente sin
 
 ## Preguntas de discovery (obligatorias para orquestación)
 
-Estas dos preguntas se hacen **antes** de la primera ronda cuando el run es orquestado (`.jr-orchestrator-state.json` presente). En modo standalone son opcionales pero recomendadas para mejorar la calidad del KB.
+Estas dos preguntas se hacen **antes** de la primera ronda cuando el run es orquestado (`.active-orchestrator-state.json` presente). En modo standalone son opcionales pero recomendadas para mejorar la calidad del KB.
 
 ### P0-sys — Tipo de sistema
 

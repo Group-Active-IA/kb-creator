@@ -111,7 +111,7 @@ Los extras **nunca reemplazan** los 10 canónicos — los complementan.
 
 ## State integration (orchestrated)
 
-Este hook es **condicional y standalone-safe**: se ejecuta solo si `.jr-orchestrator-state.json` ya existe en la raíz del proyecto (run orquestado por jr-orchestrator). Si el archivo no existe, el comportamiento es idéntico al de hoy — ningún archivo de estado es creado.
+Este hook es **condicional y standalone-safe**: se ejecuta solo si `.active-orchestrator-state.json` ya existe en la raíz del proyecto (run orquestado por active-orchestrator). Si el archivo no existe, el comportamiento es idéntico al de hoy — ningún archivo de estado es creado.
 
 **Cuándo corre**: inmediatamente después de escribir `knowledge-base/` (último paso del workflow, antes de retornar al usuario).
 
@@ -162,7 +162,7 @@ Mixed runs: si el run comenzó desde `docs/` (trigger Mode A), resuelve a `"inge
 
 ```bash
 # Instalar la skill
-npx skills add https://github.com/JuanCruzRobledo/kb-creator
+npx skills add https://github.com/Group-Active-IA/kb-creator
 
 # Invocar en el agente (carga automática por contexto):
 "crear base de conocimiento del proyecto"

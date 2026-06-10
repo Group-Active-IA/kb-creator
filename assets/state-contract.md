@@ -1,12 +1,12 @@
 # State Contract — kb-creator owns `state.kb`
 
-Reference: C-13a frozen contract (`.jr-orchestrator-state.json` v2, §4.2 I/O matrix).
+Reference: C-13a frozen contract (`.active-orchestrator-state.json` v2, §4.2 I/O matrix).
 
 ---
 
 ## 1. Schema slice
 
-kb-creator is the **sole writer** of the `kb` object inside `.jr-orchestrator-state.json`.
+kb-creator is the **sole writer** of the `kb` object inside `.active-orchestrator-state.json`.
 It NEVER touches `step`, `owner`, `roadmap`, `skills`, or `agents`.
 
 ```json
@@ -47,7 +47,7 @@ Fields:
 Run this hook **after** `knowledge-base/` is fully written, before returning to the user.
 
 ```
-1. Check project root for `.jr-orchestrator-state.json`
+1. Check project root for `.active-orchestrator-state.json`
    ├─ ABSENT  → no-op. Do NOT create the file. Done.
    ├─ PRESENT, version != 2 → surface one-line note:
    │    "State file is not v2, skipping state update."
@@ -60,7 +60,7 @@ Run this hook **after** `knowledge-base/` is fully written, before returning to 
         Write the file back. Done.
 ```
 
-**Why never create**: the orchestrator (jr-orchestrator) is the sole creator of the state file (C-13a D3). kb-creator updating-only avoids two writers racing to create it.
+**Why never create**: the orchestrator (active-orchestrator) is the sole creator of the state file (C-13a D3). kb-creator updating-only avoids two writers racing to create it.
 
 **Why strictly conditional**: kb-creator is a public standalone skill. Forcing a state file on every direct invocation would regress standalone projects and pollute non-orchestrated repos.
 

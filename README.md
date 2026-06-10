@@ -29,7 +29,7 @@ Tiene **dos modos** que se activan automáticamente:
 ## Instalación
 
 ```bash
-npx skills add https://github.com/JuanCruzRobledo/kb-creator
+npx skills add https://github.com/Group-Active-IA/kb-creator
 ```
 
 La skill queda disponible para tu agente. Se carga automáticamente cuando le pidas crear, generar o armar una base de conocimiento.
