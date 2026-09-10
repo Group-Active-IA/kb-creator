@@ -136,7 +136,7 @@ Si el usuario responde con frases como las siguientes, **no avances** — cuesti
 |----------------|--------------|
 | "todo lo que se pueda" | "no podemos documentar 'todo'. Dame 3 cosas concretas en orden de prioridad." |
 | "que sea escalable" | "escalable a qué escala — 100 usuarios, 100k, 100M? cada respuesta es una arquitectura distinta." |
-| "como hacen otros sistemas similares" | "decime UN sistema que admires concretamente y QUÉ específico de él querés copiar." |
+| "como hacen otros sistemas similares" | Si `state.discovery.competitors` YA tiene competidores investigados de verdad (fase `discovery-research` corrida antes), NO deflectes — usá esos datos reales: "vi que investigaste a [competidores], que hacen [resumen]. ¿Tu enfoque va en esa línea o pensás algo distinto?". Si NO hay `discovery` previo, seguí deflectando: "decime UN sistema que admires concretamente y QUÉ específico de él querés copiar." |
 | "lo que sea estándar de la industria" | "no existe 'el estándar'. Dame el contexto: tipo de empresa, equipo, presupuesto." |
 
 ---

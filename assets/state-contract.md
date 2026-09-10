@@ -1,6 +1,11 @@
 # State Contract — kb-creator owns `state.kb`
 
-Reference: C-13a frozen contract (`.active-orchestrator-state.json` v2, §4.2 I/O matrix).
+Reference: C-13a frozen contract (`.active-orchestrator-state.json`, §4.2 I/O matrix).
+The `kb` section's shape has not changed since v2 — only OTHER top-level sections were
+added additively (`registry` in v3, `discovery` in v4). That's why the write hook below
+checks `version >= 2`, not an exact match: an exact `version == 2` check would silently
+stop writing `state.kb` the moment the orchestrator bumped past v2, which is exactly what
+happened in production once `registry` shipped (v3) — this file is the fix for that.
 
 ---
 
@@ -11,7 +16,12 @@ It NEVER touches `step`, `owner`, `roadmap`, `skills`, or `agents`.
 
 ```json
 {
-  "version": 2,
+  "version": 4,
+  "discovery": {
+    "created_by": "discovery-research",
+    "problema": "<same idea as kb.discovery.problem, but written by discovery-research, if that phase ran>",
+    "...": "see discovery-research's own references/state-contract.md for the full shape — kb-creator only READS this, never writes it"
+  },
   "kb": {
     "created_by": "kb-creator",
     "source": "ingest | interactive",
@@ -32,6 +42,14 @@ It NEVER touches `step`, `owner`, `roadmap`, `skills`, or `agents`.
 }
 ```
 
+> The top-level `discovery` section (product/market discovery — problem, users,
+> competitors, business rules; added in v4) is a **separate** concept from
+> `kb.discovery` (architecture-oriented — system_type, scale, stack; exists since
+> v2). They're not
+> the same object. `kb-creator` only ever WRITES `kb.discovery`; it may READ the
+> top-level `discovery` section (when present) to avoid re-asking what it already
+> answers — see §5.
+
 Fields:
 | Field | Type | Description |
 |---|---|---|
@@ -49,16 +67,28 @@ Run this hook **after** `knowledge-base/` is fully written, before returning to 
 ```
 1. Check project root for `.active-orchestrator-state.json`
    ├─ ABSENT  → no-op. Do NOT create the file. Done.
-   ├─ PRESENT, version != 2 → surface one-line note:
-   │    "State file is not v2, skipping state update."
+   ├─ PRESENT, version < 2 → surface one-line note:
+   │    "State file predates the kb contract (version < 2), skipping state update."
    │    Continue. Done.
-   └─ PRESENT, version == 2 → update ONLY state.kb:
+   └─ PRESENT, version >= 2 → update ONLY state.kb:
+        • Before asking/inferring (see §4): check for a top-level `discovery`
+          section (written by discovery-research, present only if that phase
+          ran — see §5). If present, use it to pre-fill what you can instead
+          of re-asking/re-inferring those fields from scratch.
         • Set created_by: "kb-creator"
         • Set source: (see §3 Mode→source mapping)
-        • Set discovery: (see §4 inference / ask rules)
+        • Set discovery: (see §4 inference / ask rules, informed by §5 if applicable)
         • Set files: list of all knowledge-base/*.md paths written
         Write the file back. Done.
 ```
+
+**Why `version >= 2`, not `version == 2`**: `state.kb`'s own shape hasn't changed
+since v2 — every version bump since (`registry` in v3, top-level `discovery` in
+v4) added OTHER sections, additively, without touching `kb`. An exact-match check
+would stop this hook from ever firing again the moment the orchestrator moved past
+v2, silently — which is what happened in production between v2 and v3 before this
+fix. If a future version bump ever DOES change `kb`'s shape, gate on that
+specific version instead of tightening this back to an exact match.
 
 **Why never create**: the orchestrator (active-orchestrator) is the sole creator of the state file (C-13a D3). kb-creator updating-only avoids two writers racing to create it.
 
@@ -118,3 +148,38 @@ Mode A is fire-and-forget (no questions). Inference rules per field:
    Please confirm: <what you need to know>.
    ```
 3. Continue — never block Mode A on a single uncertain field.
+
+---
+
+## 5. Pre-fill from `discovery-research` (optional upstream input)
+
+If `active-orchestrator` ran the optional Discovery phase before dispatching
+`kb-creator`, the state file carries a top-level `discovery` section (owned by
+`discovery-research`, NOT the same object as `kb.discovery` — see §1). Read it
+if present, in BOTH modes, before asking (Mode B) or inferring (Mode A):
+
+| From `discovery.<field>` | Pre-fills `kb.discovery.<field>` | How |
+|---|---|---|
+| `problema` | `problem` | Direct copy — it's the same question asked earlier by a different phase. |
+| `usuarios` (size/nature of the audience) | `scale` | Orientative only — infer a starting value, but still confirm/ask if ambiguous. Never treat this as authoritative on its own. |
+| `integraciones` (any that imply the project needs its own backend infra) | `needs_infra` | If any integration listed isn't purely client-side, set `true`; otherwise leave for the normal ask/infer path. |
+
+`system_type` and `stack` are near-never derivable from product discovery (they're
+technical decisions, not business ones) — keep asking/inferring them normally
+unless the user explicitly mentioned a stack during Discovery.
+
+**In Mode B**: when a field is pre-filled this way, don't ask the corresponding
+question fresh — show what you already know and ask the user to confirm or
+correct it instead (same "resumen a confirmar" pattern used to close every
+round, see main `SKILL.md`). This is the entire point of running Discovery
+first: it removes repeated questions, it doesn't just add more of them.
+
+**In Mode A**: a pre-filled field from `discovery` takes priority over one
+inferred from `docs/` when the two would conflict — `discovery` came from a
+direct answer or real competitor research, `docs/` inference is a guess. If
+they agree, no issue; if they disagree, note the discrepancy in
+`10_preguntas_abiertas.md` instead of silently picking one.
+
+**If the top-level `discovery` section is absent or `{"skipped": true}`**:
+behave exactly as before this change — ask/infer every field from scratch, no
+different than a project that never had this feature.

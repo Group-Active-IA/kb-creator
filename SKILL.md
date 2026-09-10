@@ -6,7 +6,7 @@ description: >
 license: Apache-2.0
 metadata:
   author: gentleman-programming
-  version: "1.0"
+  version: "1.1"
 ---
 
 ## When to Use
@@ -80,8 +80,8 @@ Los extras **nunca reemplazan** los 10 canónicos — los complementan.
 **Mode A → `source: "ingest"`** (see State integration below)
 
 1. `glob docs/*.{txt,docx,pdf,md}` — enumerá las fuentes (excluí README).
-2. Leé todas las fuentes.
-3. Para cada archivo canónico, extraé contenido relevante de las fuentes y estructuralo siguiendo `assets/canonical-templates.md`.
+2. Leé todas las fuentes. Si `.active-orchestrator-state.json` existe y tiene una sección `discovery` de nivel superior (escrita por `discovery-research`, distinta de `kb.discovery`), leela también — ver `assets/state-contract.md` §5 para el mapeo exacto de qué campos pre-completa.
+3. Para cada archivo canónico, extraé contenido relevante de las fuentes (y de `discovery`, si la leíste) y estructuralo siguiendo `assets/canonical-templates.md`.
 4. Si una fuente cubre dominios extra (ej. pagos con un PSP específico), creá un archivo extra `1X_*.md`.
 5. Escribí los 10 canónicos + extras + `README.md`.
 6. Cerrá con una tabla resumen: `archivo → líneas → temas cubiertos`.
@@ -93,11 +93,11 @@ Los extras **nunca reemplazan** los 10 canónicos — los complementan.
 
 **Mode B → `source: "interactive"`** (see State integration below)
 
-1. Analizá contexto disponible (nombre del repo, mensaje del usuario, archivos visibles).
+1. Analizá contexto disponible (nombre del repo, mensaje del usuario, archivos visibles). Si `.active-orchestrator-state.json` existe y tiene una sección `discovery` de nivel superior (escrita por `discovery-research`), leela — ver `assets/state-contract.md` §5. Esto viene de una fase previa OPCIONAL de investigación de mercado, distinta de tu propio `kb.discovery`.
 2. Resumí en un párrafo qué entendés del proyecto.
 3. Listá las **incertidumbres principales** (3-5).
 4. Proponé 2-3 enfoques iniciales con pros y contras.
-5. Hacé las **3-5 preguntas estratégicas** (ver `assets/strategic-questions.md`), incluyendo las preguntas de discovery P0-sys y P0-scale que mapean a `system_type` y `scale`.
+5. Hacé las **3-5 preguntas estratégicas** (ver `assets/strategic-questions.md`), incluyendo las preguntas de discovery P0-sys y P0-scale que mapean a `system_type` y `scale`. Si algún campo ya salió de `discovery` (§5 del state-contract), NO lo vuelvas a preguntar de cero — mostralo como algo a confirmar en vez de pregunta abierta.
 6. Esperá respuesta del usuario antes de generar archivos.
 7. Después, proponé estructura inicial de la KB y validá.
 8. Iterá archivo por archivo, escribiendo + pidiendo feedback.
@@ -176,4 +176,4 @@ npx skills add https://github.com/Group-Active-IA/kb-creator
 
 - **Templates**: ver [assets/canonical-templates.md](assets/canonical-templates.md) — estructura interna esperada de los 10 archivos canónicos.
 - **Strategic questions**: ver [assets/strategic-questions.md](assets/strategic-questions.md) — banco de preguntas para Mode B (incluye P0-sys y P0-scale para discovery orquestado).
-- **State contract**: ver [assets/state-contract.md](assets/state-contract.md) — schema slice `state.kb`, algoritmo de escritura condicional, reglas de inferencia Mode A, low-confidence rule.
+- **State contract**: ver [assets/state-contract.md](assets/state-contract.md) — schema slice `state.kb`, algoritmo de escritura condicional, reglas de inferencia Mode A, low-confidence rule, y §5 (pre-fill opcional desde `discovery-research`).
