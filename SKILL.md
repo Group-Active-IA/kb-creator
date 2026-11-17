@@ -23,7 +23,15 @@ metadata:
 
 ## Operating Modes
 
-Esta skill **auto-detecta el modo** al iniciar:
+En fundación, la fase `kb` recibe una variante confirmada. Ejecutá ese plan aunque el modo que se detectaría usando solo `docs/` sea distinto:
+
+- `import`: usá Mode A con las fuentes confirmadas. Pueden estar fuera de `docs/`. Verificá antes que sean archivos accesibles y compatibles; informá si falta alguno y esperá a que se confirme el reemplazo.
+- `interview`: usá Mode B. Preguntá por la información necesaria antes de escribir y reutilizá evidencia disponible para evitar preguntas repetidas.
+- `reuse`: verificá los 10 canónicos y el índice de `knowledge-base/` sin escribir en sus archivos. Devolvé las rutas verificadas y la metadata respaldada por la KB. Si falta metadata, el orquestador registra estas rutas y la evidencia disponible en el estado confirmado.
+
+Si hay una KB parcial, no sobrescribas los documentos existentes. Reutilizá como entrada los documentos verificados y acordá cómo completar los faltantes antes de generarlos. Si los documentos existentes pertenecen a la misma ejecución interrumpida, retomá con los pendientes del plan confirmado. Escribí solo los archivos pendientes.
+
+En uso independiente, aplicá esta detección automática:
 
 ### Mode A — From existing source docs (silent)
 
@@ -79,11 +87,11 @@ Los extras **nunca reemplazan** los 10 canónicos — los complementan.
 
 **Mode A → `source: "ingest"`** (see State integration below)
 
-1. `glob docs/*.{txt,docx,pdf,md}` — enumerá las fuentes (excluí README).
+1. Usá las fuentes confirmadas cuando la variante es `import`. En uso independiente, enumerá `docs/*.{txt,docx,pdf,md}` (excluí README).
 2. Leé todas las fuentes. Si `.active-orchestrator-state.json` existe y tiene una sección `discovery` de nivel superior (escrita por `discovery-research`, distinta de `kb.discovery`), leela también — ver `assets/state-contract.md` §5 para el mapeo exacto de qué campos pre-completa.
 3. Para cada archivo canónico, extraé contenido relevante de las fuentes (y de `discovery`, si la leíste) y estructuralo siguiendo `assets/canonical-templates.md`.
 4. Si una fuente cubre dominios extra (ej. pagos con un PSP específico), creá un archivo extra `1X_*.md`.
-5. Escribí los 10 canónicos + extras + `README.md`.
+5. Escribí los 10 canónicos + extras + `README.md`, respetando la regla de reanudación para archivos verificados.
 6. Cerrá con una tabla resumen: `archivo → líneas → temas cubiertos`.
 7. **Si orquestado**: inferí los 6 campos `discovery` de los docs generados y ejecutá el hook de estado (ver `assets/state-contract.md` §4). Fuente: `"ingest"`.
 
@@ -113,7 +121,7 @@ Los extras **nunca reemplazan** los 10 canónicos — los complementan.
 
 Este hook es **condicional y standalone-safe**: se ejecuta solo si `.active-orchestrator-state.json` ya existe en la raíz del proyecto (run orquestado por active-orchestrator). Si el archivo no existe, el comportamiento es idéntico al de hoy — ningún archivo de estado es creado.
 
-**Cuándo corre**: inmediatamente después de escribir `knowledge-base/` (último paso del workflow, antes de retornar al usuario).
+**Cuándo corre**: verificá los archivos y ejecutá el hook inmediatamente después de escribir la KB en Mode A o B. En `reuse` el orquestador registra la metadata tras validar el resultado.
 
 **Qué escribe**: solo `state.kb` — nunca toca `step`, `owner`, `roadmap`, `skills`, ni `agents`.
 

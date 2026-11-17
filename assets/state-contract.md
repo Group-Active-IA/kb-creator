@@ -11,7 +11,7 @@ happened in production once `registry` shipped (v3) — this file is the fix for
 
 ## 1. Schema slice
 
-kb-creator is the **sole writer** of the `kb` object inside `.active-orchestrator-state.json`.
+kb-creator writes the `kb` object after generation. The orchestrator can register verified metadata for an existing KB on a confirmed reuse.
 It NEVER touches `step`, `owner`, `roadmap`, `skills`, or `agents`.
 
 ```json
@@ -56,13 +56,13 @@ Fields:
 | `created_by` | string | Always `"kb-creator"` — identifies the writer. |
 | `source` | enum | How the KB was built: `"ingest"` (Mode A) or `"interactive"` (Mode B). |
 | `discovery` | object | Six-field project discovery (see §3). |
-| `files` | string[] | Paths of every `knowledge-base/*.md` written (canonical + optional extras). |
+| `files` | string[] | Paths of verified `knowledge-base/*.md` files (canonical + optional extras). |
 
 ---
 
 ## 2. Conditional write algorithm
 
-Run this hook **after** `knowledge-base/` is fully written, before returning to the user.
+In Mode A and B, run this hook after verifying the canonical KB on disk. For a confirmed `reuse`, return the existing paths and metadata to the orchestrator. Keep the canonical files intact.
 
 ```
 1. Check project root for `.active-orchestrator-state.json`
@@ -78,8 +78,8 @@ Run this hook **after** `knowledge-base/` is fully written, before returning to 
         • Set created_by: "kb-creator"
         • Set source: (see §3 Mode→source mapping)
         • Set discovery: (see §4 inference / ask rules, informed by §5 if applicable)
-        • Set files: list of all knowledge-base/*.md paths written
-        Write the file back. Done.
+        • Set files: list of all verified knowledge-base/*.md paths
+        Preserve unknown fields and other phase records. Write the file back. Done.
 ```
 
 **Why `version >= 2`, not `version == 2`**: `state.kb`'s own shape hasn't changed
@@ -100,7 +100,7 @@ specific version instead of tightening this back to an exact match.
 
 | Existing mode | `state.kb.source` | Rationale |
 |---|---|---|
-| **Mode A** (silent, from `docs/`) | `"ingest"` | KB built from existing user-supplied documents — maps to the contract's "ingest" definition. |
+| **Mode A** (confirmed import sources, or from `docs/` in standalone use) | `"ingest"` | KB built from existing user-supplied documents — maps to the contract's "ingest" definition. |
 | **Mode B** (interactive, from scratch) | `"interactive"` | KB built via strategic Q&A discovery — maps to the contract's "interactive". |
 
 **Dominant-origin rule (mixed runs)**: a run that started from `docs/` (Mode A trigger) resolves to `"ingest"` even if some gaps were later clarified by questions. The origin of the bulk of the content determines `source`. A pure from-scratch run is always `"interactive"`. The enum is frozen at `ingest | interactive`; no third value is introduced.
